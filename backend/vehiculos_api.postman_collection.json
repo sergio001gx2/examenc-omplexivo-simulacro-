@@ -1,0 +1,317 @@
+{
+  "info": {
+    "_postman_id": "b2d2c3f0-aaaa-bbbb-cccc-123456789000",
+    "name": "Vehiculos API (Django + Postgres + JWT + Mongo)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "serviceTypeId", "value": "" },
+    { "key": "vehicleServiceId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Public) - POST /api/auth/register/",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/register/", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user1\",\n  \"email\": \"user1@mail.com\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (JWT) - POST /api/auth/login/ (save tokens)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "",
+                  "if (jsonData.access) {",
+                  "  pm.collectionVariables.set('accessToken', jsonData.access);",
+                  "  pm.environment.set('accessToken', jsonData.access);",
+                  "}",
+                  "",
+                  "if (jsonData.refresh) {",
+                  "  pm.collectionVariables.set('refreshToken', jsonData.refresh);",
+                  "  pm.environment.set('refreshToken', jsonData.refresh);",
+                  "}",
+                  "",
+                  "pm.test('Token access recibido', function () {",
+                  "  pm.expect(jsonData.access).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/login/", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh (JWT) - POST /api/auth/refresh/ (save access)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "if (jsonData.access) pm.collectionVariables.set('accessToken', jsonData.access);",
+                  "pm.test('Token access refrescado', function () { pm.expect(jsonData.access).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh/", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Postgres - Marcas",
+      "item": [
+        {
+          "name": "List marcas (Admin token) - GET /api/marcas/",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/marcas/", "host": ["{{baseUrl}}"], "path": ["api", "marcas", ""] }
+          }
+        },
+        {
+          "name": "Create marca (Admin) - POST /api/marcas/",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/marcas/", "host": ["{{baseUrl}}"], "path": ["api", "marcas", ""] },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Toyota\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Postgres - Vehiculos",
+      "item": [
+        {
+          "name": "List vehiculos (Public) - GET /api/vehiculos/",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/vehiculos/", "host": ["{{baseUrl}}"], "path": ["api", "vehiculos", ""] }
+          }
+        },
+        {
+          "name": "Create vehiculo (Admin) - POST /api/vehiculos/",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/vehiculos/", "host": ["{{baseUrl}}"], "path": ["api", "vehiculos", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marca\": 1,\n  \"modelo\": \"Corolla\",\n  \"anio\": 2020,\n  \"placa\": \"ABC-1234\",\n  \"color\": \"Rojo\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mongo - service_types",
+      "item": [
+        {
+          "name": "List service types (Auth) - GET /api/service-types/",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/service-types/", "host": ["{{baseUrl}}"], "path": ["api", "service-types", ""] }
+          }
+        },
+        {
+          "name": "Create service type (Auth) - POST /api/service-types/ (save serviceTypeId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('serviceTypeId', jsonData.id);",
+                  "pm.test('Se creó service type', function () { pm.expect(jsonData.id).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/service-types/", "host": ["{{baseUrl}}"], "path": ["api", "service-types", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cambio de aceite\",\n  \"description\": \"Aceite + filtro\",\n  \"base_price\": 35,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get service type by id (Auth) - GET /api/service-types/:id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/service-types/{{serviceTypeId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "service-types", "{{serviceTypeId}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Patch service type (Auth) - PATCH /api/service-types/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/service-types/{{serviceTypeId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "service-types", "{{serviceTypeId}}", ""]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"is_active\": false\n}" }
+          }
+        },
+        {
+          "name": "Delete service type (Auth) - DELETE /api/service-types/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/service-types/{{serviceTypeId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "service-types", "{{serviceTypeId}}", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mongo - vehicle_services",
+      "item": [
+        {
+          "name": "List vehicle services (Auth) - GET /api/vehicle-services/",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/vehicle-services/", "host": ["{{baseUrl}}"], "path": ["api", "vehicle-services", ""] }
+          }
+        },
+        {
+          "name": "Create vehicle service (Auth) - POST /api/vehicle-services/ (save vehicleServiceId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "if (jsonData.id) pm.collectionVariables.set('vehicleServiceId', jsonData.id);",
+                  "pm.test('Se creó vehicle service', function () { pm.expect(jsonData.id).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/vehicle-services/", "host": ["{{baseUrl}}"], "path": ["api", "vehicle-services", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculo_id\": 1,\n  \"service_type_id\": \"{{serviceTypeId}}\",\n  \"kilometers\": 85000,\n  \"cost\": 40,\n  \"notes\": \"Se cambió filtro\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get vehicle service by id (Auth) - GET /api/vehicle-services/:id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicle-services/{{vehicleServiceId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicle-services", "{{vehicleServiceId}}", ""]
+            }
+          }
+        },
+        {
+          "name": "Patch vehicle service (Auth) - PATCH /api/vehicle-services/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicle-services/{{vehicleServiceId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicle-services", "{{vehicleServiceId}}", ""]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"cost\": 45,\n  \"notes\": \"Actualizado\"\n}" }
+          }
+        },
+        {
+          "name": "Delete vehicle service (Auth) - DELETE /api/vehicle-services/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicle-services/{{vehicleServiceId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicle-services", "{{vehicleServiceId}}", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

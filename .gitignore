@@ -1,0 +1,24 @@
+# Virtual environments
+venv/
+env/
+.venv/
+backend/venv/
+
+# Node modules & build outputs
+node_modules/
+frontend/node_modules/
+mobile/node_modules/
+dist/
+frontend/dist/
+mobile/dist/
+.vite/
+
+# Python cache & environment
+__pycache__/
+*.pyc
+*.sqlite3
+.env
+backend/.env
+
+# System files
+.DS_Store
